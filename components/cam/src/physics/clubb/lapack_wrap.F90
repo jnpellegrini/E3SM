@@ -17,7 +17,7 @@ module lapack_wrap
   use clubb_precision, only: &
     core_rknd,& ! Variable(s)
     dp, &
-    sp, &
+    sp
 
   implicit none
 

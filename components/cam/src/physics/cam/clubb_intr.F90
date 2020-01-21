@@ -68,18 +68,18 @@ module clubb_intr
       grid_type    = 3, &               ! The 2 option specifies stretched thermodynamic levels
       hydromet_dim = 0                  ! The hydromet array in SAM-CLUBB is currently 0 elements
    
-  real(r8), dimension(0) :: &
+  real(core_rknd), dimension(0) :: &
       sclr_tol = 1.e-8_core_rknd               ! Total water in kg/kg
 
   character(len=6), parameter :: &
       saturation_equation = "flatau"    ! Flatau polynomial approximation for SVP
 
-  real(r8), parameter :: &
+  real(core_rknd), parameter :: &
       theta0   = 300._core_rknd, &             ! Reference temperature                     [K]
       ts_nudge = 86400._core_rknd, &           ! Time scale for u/v nudging (not used)     [s]
       p0_clubb = 100000._core_rknd
       
-  real(r8), parameter :: &
+  real(core_rknd), parameter :: &
       host_dx = 100000._core_rknd, &           ! Host model deltax [m]
       host_dy = 100000._core_rknd              ! Host model deltay [m]
       
@@ -1171,7 +1171,7 @@ end subroutine clubb_init_cnst
    real(core_rknd) :: wprtp_sfc                        ! w' r_t' at surface                            [(kg m)/( kg s)]
    real(core_rknd) :: upwp_sfc                         ! u'w' at surface                               [m^2/s^2]
    real(core_rknd) :: vpwp_sfc                         ! v'w' at surface                               [m^2/s^2]   
-   real(core_rknd) :: sclrpthvp_in(pverp,sclr_dim)     ! momentum levels (< sclr' th_v' >)             [units vary]
+   real(core_rknd) :: sclrpthvp_inout(pverp,sclr_dim)     ! momentum levels (< sclr' th_v' >)             [units vary]
    real(core_rknd) :: sclrm_forcing(pverp,sclr_dim)    ! Passive scalar forcing                        [{units vary}/s]
    real(core_rknd) :: wpsclrp_sfc(sclr_dim)            ! Scalar flux at surface                        [{units vary} m/s]
    real(core_rknd) :: edsclrm_forcing(pverp,edsclr_dim)! Eddy passive scalar forcing                   [{units vary}/s]
@@ -1214,6 +1214,7 @@ end subroutine clubb_init_cnst
    real(r8) :: relvarmax,relvarmin
    real(r8) :: qmin
    real(r8) :: varmu(pcols)
+   real(r8) :: dum1_dp                          !dummy variable 
 
    real(r8) :: invrs_hdtime                     ! Preculate 1/hdtime to reduce divide operations
    real(r8) :: invrs_gravit                     ! Preculate 1/gravit to reduce divide operations
@@ -1851,7 +1852,8 @@ end subroutine clubb_init_cnst
            trim(scm_clubb_iop_name) .eq. 'ARM_CC') then
        
              bflx22 = (gravit/theta0)*wpthlp_sfc
-             ustar  = diag_ustar(zt_g(2),bflx22,ubar,zo)      
+             dum1_dp = real(zt_g(2), kind = r8)
+             ustar  = diag_ustar(dum1_dp,bflx22,ubar,zo)      
         endif
     
         !  Compute the surface momentum fluxes, if this is a SCAM simulation       
@@ -2155,14 +2157,14 @@ end subroutine clubb_init_cnst
           rtp2(i,k)         = real(rtp2_in(pverp-k+1), kind = r8)
           thlp2(i,k)        = real(thlp2_in(pverp-k+1), kind = r8)
           rtpthlp(i,k)      = real(rtpthlp_in(pverp-k+1), kind = r8)
-          rcm(i,k)          = real(rcm_out(pverp-k+1), kind = r8)
+          rcm(i,k)          = real(rcm_inout(pverp-k+1), kind = r8)
           wprcp(i,k)        = real(wprcp_out(pverp-k+1), kind = r8)
           rcm_in_layer(i,k) = real(rcm_in_layer_out(pverp-k+1), kind = r8)
           zt_out(i,k)       = real(zt_g(pverp-k+1), kind = r8)
           zi_out(i,k)       = real(zi_g(pverp-k+1), kind = r8)
           khzm(i,k)         = real(khzm_out(pverp-k+1), kind = r8)
           khzt(i,k)         = real(khzt_out(pverp-k+1), kind = r8)
-          cloud_frac(i,k)   = real(min(cloud_frac_out(pverp-k+1),1._core_rknd), kind = r8)
+          cloud_frac(i,k)   = real(min(cloud_frac_inout(pverp-k+1),1._core_rknd), kind = r8)
           cloud_cover(i,k)  = real(min(cloud_cover_out(pverp-k+1),1._core_rknd), kind = r8)
           qclvar(i,k)       = real(min(1._core_rknd,qclvar_out(pverp-k+1)), kind = r8)
 
@@ -2170,7 +2172,6 @@ end subroutine clubb_init_cnst
           wp2thvp(i,k)      = real(wp2thvp_inout(pverp-k+1), kind = r8)
           rtpthvp(i,k)      = real(rtpthvp_inout(pverp-k+1), kind = r8)
           thlpthvp(i,k)     = real(thlpthvp_inout(pverp-k+1), kind = r8)
-          sclrpthvp(i,k,:)  = real(sclrpthvp_inout(pverp-k+1,:), kind = r8)
      
           do ixind=1,edsclr_dim
               edsclr_out(k,ixind) = real(edsclr_in(pverp-k+1,ixind), kind = r8)
