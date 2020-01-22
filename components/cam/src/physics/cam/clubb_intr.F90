@@ -732,8 +732,8 @@ end subroutine clubb_init_cnst
     !  Fill in dummy arrays for height.  Note that these are overwrote
     !  at every CLUBB step to physical values.    
     do k=1,pverp
-       zt_g(k) = ((k-1)*1000._r8)-500._r8  !  this is dummy garbage
-       zi_g(k) = (k-1)*1000._r8            !  this is dummy garbage
+       zt_g(k) = ((k-1)*1000._core_rknd)-500._core_rknd  !  this is dummy garbage
+       zi_g(k) = (k-1)*1000._core_rknd            !  this is dummy garbage
     enddo
    
     !  Set up CLUBB core.  Note that some of these inputs are overwrote
@@ -937,15 +937,15 @@ end subroutine clubb_init_cnst
     !  Is this the first time step?  If so then initialize CLUBB variables as follows
     if (is_first_step()) then
 
-       call pbuf_set_field(pbuf2d, wp2_idx,     w_tol_sqd)
+       call pbuf_set_field(pbuf2d, wp2_idx,     real(w_tol_sqd,kind = r8))
        call pbuf_set_field(pbuf2d, wp3_idx,     0.0_r8)
        call pbuf_set_field(pbuf2d, wpthlp_idx,  0.0_r8)
        call pbuf_set_field(pbuf2d, wprtp_idx,   0.0_r8)
        call pbuf_set_field(pbuf2d, rtpthlp_idx, 0.0_r8)
-       call pbuf_set_field(pbuf2d, rtp2_idx,    rt_tol**2)
-       call pbuf_set_field(pbuf2d, thlp2_idx,   thl_tol**2)
-       call pbuf_set_field(pbuf2d, up2_idx,     w_tol_sqd)
-       call pbuf_set_field(pbuf2d, vp2_idx,     w_tol_sqd)
+       call pbuf_set_field(pbuf2d, rtp2_idx,    real(rt_tol**2, kind = r8))
+       call pbuf_set_field(pbuf2d, thlp2_idx,   real(thl_tol**2, kind = r8))
+       call pbuf_set_field(pbuf2d, up2_idx,     real(w_tol_sqd, kind = r8))
+       call pbuf_set_field(pbuf2d, vp2_idx,     real(w_tol_sqd, kind = r8))
       
        call pbuf_set_field(pbuf2d, upwp_idx,    0.0_r8)
        call pbuf_set_field(pbuf2d, vpwp_idx,    0.0_r8)
@@ -2146,6 +2146,10 @@ end subroutine clubb_init_cnst
           vm(i,k)           = real(vm_in(pverp-k+1), kind = r8)
           upwp(i,k)         = real(upwp_in(pverp-k+1), kind = r8)
           vpwp(i,k)         = real(vpwp_in(pverp-k+1), kind = r8)
+          wpthvp(i,k)       = real(wpthvp_inout(pverp-k+1), kind = r8)
+          wp2thvp(i,k)      = real(wp2thvp_inout(pverp-k+1), kind = r8)
+          rtpthvp(i,k)      = real(rtpthvp_inout(pverp-k+1), kind = r8)
+          thlpthvp(i,k)     = real(thlpthvp_inout(pverp-k+1), kind = r8)
           up2(i,k)          = real(up2_in(pverp-k+1), kind = r8)
           vp2(i,k)          = real(vp2_in(pverp-k+1), kind = r8)
           thlm(i,k)         = real(thlm_in(pverp-k+1), kind = r8)
@@ -2159,19 +2163,15 @@ end subroutine clubb_init_cnst
           rtpthlp(i,k)      = real(rtpthlp_in(pverp-k+1), kind = r8)
           rcm(i,k)          = real(rcm_inout(pverp-k+1), kind = r8)
           wprcp(i,k)        = real(wprcp_out(pverp-k+1), kind = r8)
+          cloud_frac(i,k)   = min(real(cloud_frac_inout(pverp-k+1),kind = r8),1._r8)
           rcm_in_layer(i,k) = real(rcm_in_layer_out(pverp-k+1), kind = r8)
+          cloud_cover(i,k)  = min(real(cloud_cover_out(pverp-k+1),kind = r8),1._r8)
           zt_out(i,k)       = real(zt_g(pverp-k+1), kind = r8)
           zi_out(i,k)       = real(zi_g(pverp-k+1), kind = r8)
           khzm(i,k)         = real(khzm_out(pverp-k+1), kind = r8)
           khzt(i,k)         = real(khzt_out(pverp-k+1), kind = r8)
-          cloud_frac(i,k)   = real(min(cloud_frac_inout(pverp-k+1),1._core_rknd), kind = r8)
-          cloud_cover(i,k)  = real(min(cloud_cover_out(pverp-k+1),1._core_rknd), kind = r8)
-          qclvar(i,k)       = real(min(1._core_rknd,qclvar_out(pverp-k+1)), kind = r8)
-
-          wpthvp(i,k)       = real(wpthvp_inout(pverp-k+1), kind = r8)
-          wp2thvp(i,k)      = real(wp2thvp_inout(pverp-k+1), kind = r8)
-          rtpthvp(i,k)      = real(rtpthvp_inout(pverp-k+1), kind = r8)
-          thlpthvp(i,k)     = real(thlpthvp_inout(pverp-k+1), kind = r8)
+          qclvar(i,k)       = min(1._r8,real(qclvar_out(pverp-k+1),kind = r8))
+          sclrpthvp(i,k,:)  = real(sclrpthvp_inout(pverp-k+1,:), kind = r8)
      
           do ixind=1,edsclr_dim
               edsclr_out(k,ixind) = real(edsclr_in(pverp-k+1,ixind), kind = r8)
